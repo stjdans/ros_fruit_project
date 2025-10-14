@@ -1,0 +1,19 @@
+# price_table.yaml
+# 과일별 단가표 (원/kg)
+
+prices:
+  banana: 8000      # 바나나: 8,000원/kg
+  orange: 8000      # 오렌지: 8,000원/kg
+  Guava: 16000      # 구아바: 16,000원/kg
+  
+# 추가 설정
+currency: "KRW"     # 통화: 원화
+unit: "kg"          # 무게 단위: 킬로그램
+
+# 할인 정책 (선택사항)
+discount:
+  enabled: false
+  bulk_discount:    # 대량 구매 할인
+    threshold: 5.0  # kg 이상 구매 시
+    rate: 0.1       # 10% 할인
+

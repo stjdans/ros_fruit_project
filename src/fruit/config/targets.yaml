@@ -1,0 +1,88 @@
+# targets.yaml
+# 로봇팔 작업 공간의 주요 목표 위치 정의 (Gazebo 좌표계 기준)
+
+# 참조 프레임
+reference_frame: "base_link"
+
+# 홈 포지션 (대기 위치)
+home_position:
+  position:
+    x: 0.15
+    y: 0.0
+    z: 0.25
+  orientation:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+
+# 저울 위치 (과일을 놓는 곳)
+scale_position:
+  position:
+    x: 0.0
+    y: 0.25
+    z: 0.15
+  orientation:
+    x: 0.0
+    y: 0.0
+    z: 0.707
+    w: 0.707
+
+# 과일 픽업 영역 (예상 위치들)
+fruit_pickup_area:
+  basket_center:
+    position:
+      x: 0.2
+      y: -0.15
+      z: 0.1
+    orientation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+  
+  # 바스켓 주변 여러 위치
+  pickup_zone_1:
+    position:
+      x: 0.18
+      y: -0.12
+      z: 0.1
+  pickup_zone_2:
+    position:
+      x: 0.22
+      y: -0.18
+      z: 0.1
+  pickup_zone_3:
+    position:
+      x: 0.25
+      y: -0.15
+      z: 0.1
+
+# 컨테이너 위치 (무게 측정 후 보관)
+container_position:
+  position:
+    x: -0.1
+    y: 0.3
+    z: 0.15
+  orientation:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+
+# 안전 높이 (충돌 방지)
+approach_offset:
+  z: 0.1  # 목표 위치 위 10cm에서 접근
+
+# 그리퍼 설정
+gripper:
+  open_position: 0.01    # 열림 (10mm)
+  close_position: -0.01  # 닫힘
+  
+# 작업 속도 설정
+motion_planning:
+  max_velocity_scaling: 0.5       # 최대 속도의 50%
+  max_acceleration_scaling: 0.5   # 최대 가속도의 50%
+  planning_time: 5.0              # 경로 계획 최대 시간 (초)
+  goal_tolerance: 0.01            # 목표 도달 허용 오차 (m)
+

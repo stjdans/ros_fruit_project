@@ -1,0 +1,49 @@
+# Joint limits for OpenManipulator-X
+# Reference: ROBOTIS OpenManipulator-X official specifications
+
+joint_limits:
+  joint1:
+    has_velocity_limits: true
+    max_velocity: 4.8  # rad/s
+    has_acceleration_limits: true
+    max_acceleration: 2.0  # rad/s^2
+    has_position_limits: true
+    min_position: -2.827  # ~-162 degrees
+    max_position: 2.827   # ~162 degrees
+    
+  joint2:
+    has_velocity_limits: true
+    max_velocity: 4.8
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+    has_position_limits: true
+    min_position: -1.571  # ~-90 degrees
+    max_position: 1.047   # ~60 degrees
+    
+  joint3:
+    has_velocity_limits: true
+    max_velocity: 4.8
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+    has_position_limits: true
+    min_position: -0.942  # ~-54 degrees
+    max_position: 1.571   # ~90 degrees
+    
+  joint4:
+    has_velocity_limits: true
+    max_velocity: 4.8
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+    has_position_limits: true
+    min_position: -1.792  # ~-103 degrees
+    max_position: 2.094   # ~120 degrees
+    
+  gripper:
+    has_velocity_limits: true
+    max_velocity: 1.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+    has_position_limits: true
+    min_position: -0.01   # closed
+    max_position: 0.019   # open (19mm)
+

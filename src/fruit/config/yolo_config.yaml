@@ -1,0 +1,8 @@
+# config/yolo_config.yaml
+# YOLO 추론 기본 설정 파일
+
+conf_threshold: 0.5       # confidence threshold
+iou_threshold: 0.45       # NMS IoU threshold
+device: "cuda"            # "cuda" 사용 시 GPU
+classes: ["orange", "banana", "guava"]  # 추론 대상 클래스
+max_detections: 20        # 최대 감지 개수

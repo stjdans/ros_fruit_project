@@ -1,0 +1,13 @@
+# YOLO 클래스 정의 파일
+# 과일 감지용 클래스 리스트
+
+classes:
+  - banana
+  - Guava
+  - orange
+
+# 클래스 ID 매핑 (참고용)
+class_ids:
+  banana: 0
+  Guava: 1
+  orange: 2

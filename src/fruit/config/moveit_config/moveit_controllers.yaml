@@ -1,0 +1,46 @@
+# MoveIt Controllers for OpenManipulator-X with Gazebo
+# Uses FollowJointTrajectory action interface
+
+controller_manager_ns: controller_manager
+controller_list:
+  - name: arm_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+      
+  - name: gripper_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - gripper
+
+# Gazebo ros_control plugin configuration
+gazebo_ros_control:
+  pid_gains:
+    joint1:
+      p: 100.0
+      i: 0.01
+      d: 10.0
+    joint2:
+      p: 100.0
+      i: 0.01
+      d: 10.0
+    joint3:
+      p: 100.0
+      i: 0.01
+      d: 10.0
+    joint4:
+      p: 100.0
+      i: 0.01
+      d: 10.0
+    gripper:
+      p: 50.0
+      i: 0.0
+      d: 5.0
+
