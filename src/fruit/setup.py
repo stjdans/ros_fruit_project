@@ -29,11 +29,16 @@ setup(
         (os.path.join('share', package_name, 'models/fruits/orange'), glob('models/fruits/orange/*')),
         (os.path.join('share', package_name, 'models/basket'), glob('models/basket/*.obj')),
         (os.path.join('share', package_name, 'models/container'), glob('models/container/*')),
-        
+
         # Install scripts
         (os.path.join('share', package_name, 'scripts'), glob('scripts/*.py')),
     ],
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'pyzmq>=22.0.0',
+        'redis>=5.0.0',
+        'websockets>=12.0',
+    ],
     zip_safe=True,
     maintainer='ssm',
     maintainer_email='ssm@todo.todo',
@@ -50,10 +55,19 @@ setup(
             'yolo_detector = fruit.perception.yolo_detector:main',
             'camera_node = fruit.perception.camera_node:main',
             
+            # Camera nodes
+            'camera_viewer = fruit.camera.camera_viewer:main',
+            'camera_streamer = fruit.camera.camera_streamer:main',
+            'camera_streamer_websocket = fruit.camera.camera_streamer_websocket:main',
+            'camera_streamer_gstreamer = fruit.camera.camera_streamer_gstreamer:main',
+            'camera_streamer_redis = fruit.camera.camera_streamer_redis:main',
+            'camera_streamer_zeromq = fruit.camera.camera_streamer_zeromq:main',
+            
             # Manipulation nodes
             'moveit_interface = fruit.manipulation.moveit_interface:main',
             'pick_and_place = fruit.manipulation.pick_and_place:main',
             'gripper_control = fruit.manipulation.gripper_control:main',
+            'trajectory_controller = fruit.manipulation.trajectory_controller:main',
             
             # Spawner
             'fruit_spawner = fruit.spawner.fruit_spawner:main',
