@@ -30,7 +30,7 @@ class FruitSpawner(Node):
                 'name': 'orange',
                 'obj_path': f'{self.ws_path}/src/fruit/models/fruits/orange/Orange.obj',
                 'mtl_path': f'{self.ws_path}/src/fruit/models/fruits/orange/Orange.mtl',
-                'x': -1.5, 'y': -0.5, 'z': 0.1,
+                'x': -0.5, 'y': -0.5, 'z': 0.1,
                 'mass': 0.2,
                 'scale': '0.02 0.02 0.02',
                 'color': '1 0.5 0 1'
@@ -39,7 +39,7 @@ class FruitSpawner(Node):
                 'name': 'banana',
                 'obj_path': f'{self.ws_path}/src/fruit/models/fruits/banana/banana_v03.obj',
                 'mtl_path': f'{self.ws_path}/src/fruit/models/fruits/banana/banana_v03.mtl',
-                'x': -1.5, 'y': -0.6, 'z': 0.1,
+                'x': -0.5, 'y': -0.6, 'z': 0.1,
                 'mass': 0.15,
                 'scale': '0.02 0.02 0.02',
                 'color': '1 1 0 1'
@@ -48,23 +48,19 @@ class FruitSpawner(Node):
                 'name': 'guava',
                 'obj_path': f'{self.ws_path}/src/fruit/models/fruits/guava/Guava.obj',
                 'mtl_path': f'{self.ws_path}/src/fruit/models/fruits/guava/Guava.mtl',
-                'x': -1.5, 'y': -0.45, 'z': 0.1,
+                'x': -0.5, 'y': -0.45, 'z': 0.1,
                 'mass': 0.25,
                 'scale': '0.02 0.02 0.02',
                 'color': '0 1 0 1'
             },
         ]
         
-        # # 초기 스폰 (3초 후 한 번만)
-        self.timer = self.create_timer(3.0, self.spawn_all_fruits)
-        self.spawned = False
+        time.sleep(3)
+        self.spawn_all_fruits()
+        
         
     def spawn_all_fruits(self):
         """모든 과일 스폰 (한 번만 실행)"""
-        if self.spawned:
-            return
-        
-        # self.spawned = True
         
         # 타임스탬프 추가로 이름 충돌 방지
         timestamp = int(time.time())
@@ -111,6 +107,11 @@ class FruitSpawner(Node):
               </model>
             </sdf>
             """
+                    # <material>
+                    #   <ambient>{fruit['color']}</ambient>
+                    #   <diffuse>{fruit['color']}</diffuse>
+                    # </material>
+            
             
             req = SpawnEntity.Request()
             req.name = f"{fruit['name']}_{timestamp}_{i}"
@@ -127,9 +128,6 @@ class FruitSpawner(Node):
             else:
                 error_msg = future.result().status_message if future.result() else "Timeout or no response"
                 self.get_logger().error(f"✗ Failed to spawn {fruit['name']}_{timestamp}_{i}: {error_msg}")
-        
-        # # 타이머 취소
-        # self.timer.cancel()
 
 def main(args=None):
     rclpy.init(args=args)
