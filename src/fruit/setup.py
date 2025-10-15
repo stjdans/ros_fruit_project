@@ -71,6 +71,7 @@ setup(
             
             # Spawner
             'fruit_spawner = fruit.spawner.fruit_spawner:main',
+            'spawn_from_sdf = fruit.spawner.spawn_from_sdf:main',
             
             # Weighing
             'price_calculator = fruit.weighing.price_calculator:main',
