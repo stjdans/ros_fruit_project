@@ -30,7 +30,7 @@ class FruitSpawner(Node):
                 'name': 'orange',
                 'obj_path': f'{self.ws_path}/src/fruit/models/fruits/orange/Orange.obj',
                 'mtl_path': f'{self.ws_path}/src/fruit/models/fruits/orange/Orange.mtl',
-                'x': -0.5, 'y': -0.5, 'z': 0.1,
+                'x': -1.4, 'y': -0.0, 'z': 0.1,
                 'mass': 0.2,
                 'scale': '0.02 0.02 0.02',
                 'color': '1 0.5 0 1'
@@ -39,7 +39,7 @@ class FruitSpawner(Node):
                 'name': 'banana',
                 'obj_path': f'{self.ws_path}/src/fruit/models/fruits/banana/banana_v03.obj',
                 'mtl_path': f'{self.ws_path}/src/fruit/models/fruits/banana/banana_v03.mtl',
-                'x': -0.5, 'y': -0.6, 'z': 0.1,
+                'x': -1.4, 'y': -0.03, 'z': 0.1,
                 'mass': 0.15,
                 'scale': '0.02 0.02 0.02',
                 'color': '1 1 0 1'
@@ -48,7 +48,7 @@ class FruitSpawner(Node):
                 'name': 'guava',
                 'obj_path': f'{self.ws_path}/src/fruit/models/fruits/guava/Guava.obj',
                 'mtl_path': f'{self.ws_path}/src/fruit/models/fruits/guava/Guava.mtl',
-                'x': -0.5, 'y': -0.45, 'z': 0.1,
+                'x': -1.4, 'y': -0.05, 'z': 0.1,
                 'mass': 0.25,
                 'scale': '0.02 0.02 0.02',
                 'color': '0 1 0 1'

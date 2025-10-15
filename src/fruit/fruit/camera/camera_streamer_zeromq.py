@@ -288,7 +288,7 @@ class CameraStreamerZeroMQ(Node):
             class_name = detection['class_name']
             
             # 0.3 이하 탐지 결과는 패스
-            if confidence < 0.3:
+            if confidence < 0.4:
                 continue
             
             # 바운딩 박스 그리기

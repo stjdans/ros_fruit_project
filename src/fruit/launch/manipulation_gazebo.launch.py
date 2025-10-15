@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+
+
+def generate_launch_description():
+    """
+    Launch file to run turtlebot3_manipulation_gazebo gazebo.launch.py
+    """
+    
+    # Declare launch arguments that can be passed to the gazebo.launch.py
+    start_rviz_arg = DeclareLaunchArgument(
+        'start_rviz',
+        default_value='false',
+        description='Whether to execute rviz2'
+    )
+    
+    prefix_arg = DeclareLaunchArgument(
+        'prefix',
+        default_value='""',
+        description='Prefix of the joint and link names'
+    )
+    
+    use_sim_arg = DeclareLaunchArgument(
+        'use_sim',
+        default_value='true',
+        description='Start robot in Gazebo simulation'
+    )
+    
+    x_pose_arg = DeclareLaunchArgument(
+        'x_pose',
+        default_value='-2.00',
+        description='Initial x position of turtlebot3'
+    )
+    
+    y_pose_arg = DeclareLaunchArgument(
+        'y_pose',
+        default_value='-0.50',
+        description='Initial y position of turtlebot3'
+    )
+    
+    z_pose_arg = DeclareLaunchArgument(
+        'z_pose',
+        default_value='0.01',
+        description='Initial z position of turtlebot3'
+    )
+    
+    roll_arg = DeclareLaunchArgument(
+        'roll',
+        default_value='0.00',
+        description='Initial roll orientation of turtlebot3'
+    )
+    
+    pitch_arg = DeclareLaunchArgument(
+        'pitch',
+        default_value='0.00',
+        description='Initial pitch orientation of turtlebot3'
+    )
+    
+    yaw_arg = DeclareLaunchArgument(
+        'yaw',
+        default_value='0.00',
+        description='Initial yaw orientation of turtlebot3'
+    )
+    
+    world_arg = DeclareLaunchArgument(
+        'world',
+        default_value=PathJoinSubstitution([
+            FindPackageShare('turtlebot3_gazebo'),
+            'worlds',
+            'empty_world.world'
+        ]),
+        description='Path to the Gazebo world file'
+    )
+    
+    # Include the turtlebot3_manipulation_gazebo gazebo.launch.py
+    gazebo_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('turtlebot3_manipulation_gazebo'),
+                'launch',
+                'gazebo.launch.py'
+            ])
+        ),
+        launch_arguments={
+            'start_rviz': LaunchConfiguration('start_rviz'),
+            'prefix': LaunchConfiguration('prefix'),
+            'use_sim': LaunchConfiguration('use_sim'),
+            'world': LaunchConfiguration('world'),
+            'x_pose': LaunchConfiguration('x_pose'),
+            'y_pose': LaunchConfiguration('y_pose'),
+            'z_pose': LaunchConfiguration('z_pose'),
+            'roll': LaunchConfiguration('roll'),
+            'pitch': LaunchConfiguration('pitch'),
+            'yaw': LaunchConfiguration('yaw'),
+        }.items(),
+    )
+    
+    # Fruit spawner node
+    fruit_spawner_node = Node(
+        package='fruit',
+        executable='fruit_spawner',
+        name='fruit_spawner',
+        output='screen'
+    )
+    
+    # Delay fruit spawner execution by 5 seconds
+    delayed_fruit_spawner = TimerAction(
+        period=5.0,
+        actions=[fruit_spawner_node]
+    )
+    
+    # Include ceiling camera launch
+    ceiling_camera_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('fruit'),
+                'launch',
+                'ceiling_camera.launch.py'
+            ])
+        )
+    )
+    
+    # Delay ceiling camera launch execution by 5 seconds
+    delayed_ceiling_camera = TimerAction(
+        period=5.0,
+        actions=[ceiling_camera_launch]
+    )
+    
+    # Camera streamer zeromq node
+    camera_streamer_zeromq_node = Node(
+        package='fruit',
+        executable='camera_streamer_zeromq',
+        name='camera_streamer_zeromq',
+        output='screen'
+    )
+    
+    # Delay camera streamer zeromq execution by 10 seconds
+    delayed_camera_streamer = TimerAction(
+        period=10.0,
+        actions=[camera_streamer_zeromq_node]
+    )
+    
+    return LaunchDescription([
+        start_rviz_arg,
+        prefix_arg,
+        use_sim_arg,
+        world_arg,
+        x_pose_arg,
+        y_pose_arg,
+        z_pose_arg,
+        roll_arg,
+        pitch_arg,
+        yaw_arg,
+        gazebo_launch,
+        delayed_fruit_spawner,
+        delayed_ceiling_camera,
+        delayed_camera_streamer,
+    ])
+
