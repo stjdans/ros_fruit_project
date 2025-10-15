@@ -32,7 +32,8 @@ class CameraStreamerZeroMQ(Node):
         self.declare_parameter('zmq_pattern', 'pub')  # pub, push, req
         self.declare_parameter('streaming_fps', 30)
         self.declare_parameter('image_quality', 85)
-        self.declare_parameter('image_topic', '/pi_camera/image_raw')
+        # self.declare_parameter('image_topic', '/pi_camera/image_raw')
+        self.declare_parameter('image_topic', '/ceiling/ceiling_camera/image_raw')
         self.declare_parameter('high_water_mark', 10)  # 메시지 큐 크기
         self.declare_parameter('send_timeout', 1000)  # ms
         
@@ -128,8 +129,8 @@ class CameraStreamerZeroMQ(Node):
             # 탐지 결과를 이미지에 그리기
             cv_image = self.draw_detections(cv_image, detections)
             
-            # 이미지 정보를 화면에 표시
-            cv_image = self.display_image_with_info(cv_image, msg, detections)
+            # # 이미지 정보를 화면에 표시
+            # cv_image = self.display_image_with_info(cv_image, msg, detections)
             
             with self.image_lock:
                 self.latest_image = cv_image.copy()
@@ -285,6 +286,10 @@ class CameraStreamerZeroMQ(Node):
             x1, y1, x2, y2 = detection['bbox']
             confidence = detection['confidence']
             class_name = detection['class_name']
+            
+            # 0.3 이하 탐지 결과는 패스
+            if confidence < 0.3:
+                continue
             
             # 바운딩 박스 그리기
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)

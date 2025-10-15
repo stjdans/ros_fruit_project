@@ -29,6 +29,7 @@ setup(
         (os.path.join('share', package_name, 'models/fruits/orange'), glob('models/fruits/orange/*')),
         (os.path.join('share', package_name, 'models/basket'), glob('models/basket/*.obj')),
         (os.path.join('share', package_name, 'models/container'), glob('models/container/*')),
+        (os.path.join('share', package_name, 'models/ceiling_camera'), glob('models/ceiling_camera/*')),
 
         # Install scripts
         (os.path.join('share', package_name, 'scripts'), glob('scripts/*.py')),
@@ -57,6 +58,7 @@ setup(
             
             # Camera nodes
             'camera_viewer = fruit.camera.camera_viewer:main',
+            'ceiling_camera_viewer = fruit.camera.ceiling_camera_viewer:main',
             'camera_streamer = fruit.camera.camera_streamer:main',
             'camera_streamer_websocket = fruit.camera.camera_streamer_websocket:main',
             'camera_streamer_gstreamer = fruit.camera.camera_streamer_gstreamer:main',
