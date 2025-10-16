@@ -1,17 +1,36 @@
 #!/usr/bin/env python3
 
+import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
     """
     Launch file to run turtlebot3_manipulation_gazebo gazebo.launch.py
     """
+    
+    # Get fruit package path and set GAZEBO_MODEL_PATH
+    fruit_pkg = get_package_share_directory('fruit')
+    models_path = os.path.join(fruit_pkg, 'models')
+    
+    # Get existing GAZEBO_MODEL_PATH and append our models path
+    existing_model_path = os.environ.get('GAZEBO_MODEL_PATH', '')
+    if existing_model_path:
+        gazebo_model_path = f"{models_path}:{existing_model_path}"
+    else:
+        gazebo_model_path = models_path
+    
+    # Set GAZEBO_MODEL_PATH environment variable
+    set_gazebo_model_path = SetEnvironmentVariable(
+        name='GAZEBO_MODEL_PATH',
+        value=gazebo_model_path
+    )
     
     # Declare launch arguments that can be passed to the gazebo.launch.py
     start_rviz_arg = DeclareLaunchArgument(
@@ -147,6 +166,10 @@ def generate_launch_description():
     )
     
     return LaunchDescription([
+        # Set environment variable first
+        set_gazebo_model_path,
+        
+        # Launch arguments
         start_rviz_arg,
         prefix_arg,
         use_sim_arg,
@@ -157,6 +180,8 @@ def generate_launch_description():
         roll_arg,
         pitch_arg,
         yaw_arg,
+        
+        # Launch files and nodes
         gazebo_launch,
         delayed_fruit_spawner,
         delayed_ceiling_camera,

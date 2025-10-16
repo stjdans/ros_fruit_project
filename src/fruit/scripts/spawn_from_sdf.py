@@ -5,6 +5,7 @@ import rclpy
 from rclpy.node import Node
 from gazebo_msgs.srv import SpawnEntity
 import os
+from ament_index_python.packages import get_package_share_directory
 
 def main():
     rclpy.init()
@@ -20,11 +21,11 @@ def main():
     
     node.get_logger().info('Service available!')
     
-    # SDF 파일 경로
-    workspace_path = os.path.expanduser('~/turtle_ws')
+    # SDF 파일 경로 (패키지 기반 상대 경로)
+    fruit_pkg = get_package_share_directory('fruit')
     sdf_file_path = os.path.join(
-        workspace_path,
-        'src/fruit/models/fruits/banana/model.sdf'
+        fruit_pkg,
+        'models', 'fruits', 'banana', 'model.sdf'
     )
     
     node.get_logger().info(f'Reading SDF file: {sdf_file_path}')

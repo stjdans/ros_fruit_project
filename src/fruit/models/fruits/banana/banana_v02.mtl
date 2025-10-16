@@ -14,5 +14,5 @@ newmtl banana07_lr
 	Ni 1.5200
 	Ke 0.0000 0.0000 0.0000
 	illum 2
-	map_Kd file:///home/ssm/turtle_ws/src/fruit/models/fruits/banana/banana07_lr_albedo.jpeg
-	norm file:///home/ssm/turtle_ws/src/fruit/models/fruits/banana/banana07_lr_normals.jpg
+	map_Kd banana07_lr_albedo.jpeg
+	norm banana07_lr_normals.jpg

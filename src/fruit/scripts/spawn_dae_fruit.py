@@ -10,6 +10,7 @@ from rclpy.node import Node
 from gazebo_msgs.srv import SpawnEntity
 import os
 import time
+from ament_index_python.packages import get_package_share_directory
 
 def main():
     # ROS2 초기화
@@ -18,10 +19,9 @@ def main():
     # ROS2 노드 생성 (노드 이름: dae_fruit_spawner)
     node = Node('dae_fruit_spawner')
     
-    # 현재 워크스페이스 경로 설정
-    # expanduser를 사용하여 ~ (홈 디렉토리)를 절대 경로로 변환
-    ws_path = os.path.expanduser('~/fruit_robot_project_ws')
-    dae_path = f'{ws_path}/models/fruits/fruits.dae'
+    # 패키지 경로 가져오기 (상대 경로)
+    fruit_pkg = get_package_share_directory('fruit')
+    dae_path = os.path.join(fruit_pkg, 'models', 'fruits', 'fruits.dae')
     
     # DAE 파일이 실제로 존재하는지 확인
     # 파일이 없으면 에러 메시지 출력 후 종료

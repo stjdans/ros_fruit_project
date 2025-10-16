@@ -4,6 +4,20 @@ from glob import glob
 
 package_name = 'fruit'
 
+def get_data_files(directory):
+    """재귀적으로 디렉토리의 모든 파일을 data_files 형식으로 반환"""
+    data_files = []
+    for root, dirs, files in os.walk(directory):
+        if files:
+            # 상대 경로로 변환
+            rel_root = os.path.relpath(root)
+            # share/package_name/... 형식으로 목적지 경로 생성
+            dest_path = os.path.join('share', package_name, rel_root)
+            # 해당 디렉토리의 모든 파일 경로 리스트
+            file_paths = [os.path.join(root, f) for f in files]
+            data_files.append((dest_path, file_paths))
+    return data_files
+
 setup(
     name=package_name,
     version='0.0.0',
@@ -12,28 +26,11 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        
-        # Install launch files
-        (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
-        
-        # Install config files
-        (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
-        (os.path.join('share', package_name, 'config/moveit_config'), glob('config/moveit_config/*.yaml')),
-        (os.path.join('share', package_name, 'config/moveit_config'), glob('config/moveit_config/*.srdf')),
-        (os.path.join('share', package_name, 'config/yolo_model'), glob('config/yolo_model/*.yaml')),
-        (os.path.join('share', package_name, 'config/yolo_model'), glob('config/yolo_model/*.pt')),
-        
-        # Install models
-        (os.path.join('share', package_name, 'models/sdf'), glob('models/sdf/*.sdf')),
-        (os.path.join('share', package_name, 'models/fruits/banana'), glob('models/fruits/banana/*')),
-        (os.path.join('share', package_name, 'models/fruits/orange'), glob('models/fruits/orange/*')),
-        (os.path.join('share', package_name, 'models/basket'), glob('models/basket/*.obj')),
-        (os.path.join('share', package_name, 'models/container'), glob('models/container/*')),
-        (os.path.join('share', package_name, 'models/ceiling_camera'), glob('models/ceiling_camera/*')),
-
-        # Install scripts
-        (os.path.join('share', package_name, 'scripts'), glob('scripts/*.py')),
-    ],
+    ] 
+    + get_data_files('launch')
+    + get_data_files('scripts') 
+    + get_data_files('config') 
+    + get_data_files('models'),
     install_requires=[
         'setuptools',
         'pyzmq>=22.0.0',

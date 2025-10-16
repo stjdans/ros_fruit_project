@@ -14,7 +14,7 @@
       <visual name="visual">
         <geometry>
           <mesh>
-            <uri>file:///home/ssm/turtle_ws/src/fruit/models/fruits/banana/banana_v03.obj</uri>
+            <uri>model://fruits/banana/banana_v03.obj</uri>
             <scale>0.002 0.002 0.002</scale>
           </mesh>
         </geometry>
@@ -22,7 +22,7 @@
       <collision name="collision">
         <geometry>
           <mesh>
-            <uri>file:///home/ssm/turtle_ws/src/fruit/models/fruits/banana/banana_v03.obj</uri>
+            <uri>model://fruits/banana/banana_v03.obj</uri>
             <scale>0.002 0.002 0.002</scale>
           </mesh>
         </geometry>

@@ -6,13 +6,15 @@ from rclpy.node import Node
 from gazebo_msgs.srv import SpawnEntity
 import os
 import time
+from ament_index_python.packages import get_package_share_directory
 
 def main():
     rclpy.init()
     node = Node('real_fruit_spawner')
     
-    # 현재 워크스페이스 경로
-    ws_path = os.path.expanduser('~/fruit_robot_project_ws')
+    # 패키지 경로 가져오기 (상대 경로)
+    fruit_pkg = get_package_share_directory('fruit')
+    models_path = os.path.join(fruit_pkg, 'models', 'fruits')
     
     # Gazebo spawn 서비스 클라이언트
     spawn_client = node.create_client(SpawnEntity, '/spawn_entity')
@@ -23,12 +25,12 @@ def main():
     
     node.get_logger().info('Service available! Spawning real fruit models...')
     
-    # 과일 3개 생성 - 절대 경로 사용
+    # 과일 3개 생성 - 상대 경로 사용
     fruits = [
         {
             'name': 'orange',
-            'obj_path': f'{ws_path}/models/fruits/orange/Orange.obj',
-            'mtl_path': f'{ws_path}/models/fruits/orange/Orange.mtl',
+            'obj_path': os.path.join(models_path, 'orange', 'Orange.obj'),
+            'mtl_path': os.path.join(models_path, 'orange', 'Orange.mtl'),
             'x': -0.5, 'y': -0.5, 'z': 0.0,
             'mass': 0.2,
             'scale': '0.02 0.02 0.02',
@@ -36,8 +38,8 @@ def main():
         },
         {
             'name': 'banana',
-            'obj_path': f'{ws_path}/models/fruits/banana/Banana.obj',
-            'mtl_path': f'{ws_path}/models/fruits/banana/Banana.mtl',
+            'obj_path': os.path.join(models_path, 'banana', 'Banana.obj'),
+            'mtl_path': os.path.join(models_path, 'banana', 'Banana.mtl'),
             'x': -0.5, 'y': -0.6, 'z': 0.0,
             'mass': 0.15,
             'scale': '0.02 0.02 0.02',
@@ -45,8 +47,8 @@ def main():
         },
         {
             'name': 'guava',
-            'obj_path': f'{ws_path}/models/fruits/guava/Guava.obj',
-            'mtl_path': f'{ws_path}/models/fruits/guava/Guava.mtl',
+            'obj_path': os.path.join(models_path, 'guava', 'Guava.obj'),
+            'mtl_path': os.path.join(models_path, 'guava', 'Guava.mtl'),
             'x': -0.5, 'y': -0.45, 'z': 0.0,
             'mass': 0.25,
             'scale': '0.02 0.02 0.02',
@@ -65,7 +67,7 @@ def main():
             
         node.get_logger().info(f"Loading {fruit['name']} from {fruit['obj_path']}")
         
-        # 절대 경로로 SDF 생성
+        # SDF 생성
         sdf = f"""
         <sdf version='1.6'>
           <model name='{fruit['name']}_{timestamp}_{i}'>
