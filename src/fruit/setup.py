@@ -36,6 +36,8 @@ setup(
         'pyzmq>=22.0.0',
         'redis>=5.0.0',
         'websockets>=12.0',
+        'flask>=2.0.0',
+        'flask-cors>=3.0.0',
     ],
     zip_safe=True,
     maintainer='ssm',
@@ -80,6 +82,9 @@ setup(
             
             # Dashboard
             'dashboard = fruit.dashboard.app:main',
+            
+            # API Server
+            'parameter_server = fruit.api.parameter_server:main',
         ],
     },
 )

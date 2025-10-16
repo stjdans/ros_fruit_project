@@ -165,6 +165,20 @@ def generate_launch_description():
         actions=[camera_streamer_zeromq_node]
     )
     
+    # Parameter server node (REST API for web control)
+    parameter_server_node = Node(
+        package='fruit',
+        executable='parameter_server',
+        name='parameter_server',
+        output='screen'
+    )
+    
+    # Delay parameter server execution by 10 seconds
+    delayed_parameter_server = TimerAction(
+        period=10.0,
+        actions=[parameter_server_node]
+    )
+    
     return LaunchDescription([
         # Set environment variable first
         set_gazebo_model_path,
@@ -186,5 +200,6 @@ def generate_launch_description():
         delayed_fruit_spawner,
         delayed_ceiling_camera,
         delayed_camera_streamer,
+        delayed_parameter_server,
     ])
 
