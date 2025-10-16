@@ -12,6 +12,7 @@ TurtleBot3 Manipulation 시뮬레이션 환경에서 과일 인식 및 조작 �
 - [Launch Arguments](#launch-arguments)
 - [실행 예제](#실행-예제)
 - [웹 API를 통한 파라미터 제어](#웹-api를-통한-파라미터-제어)
+- [로봇 제어 API 사용 예제](#로봇-제어-api-사용-예제)
 - [트러블슈팅](#트러블슈팅)
 - [노드 구조](#노드-구조)
 - [주요 토픽 및 서비스](#주요-토픽-및-서비스)
@@ -28,6 +29,7 @@ TurtleBot3 Manipulation 시뮬레이션 환경에서 과일 인식 및 조작 �
 - 📹 **Ceiling Camera**: 천장 카메라 및 뷰어
 - 🔌 **Camera Streamer**: ZeroMQ 기반 실시간 영상 스트리밍 및 YOLO 객체 탐지
 - 🌐 **Parameter Server**: 웹 브라우저에서 ROS 2 파라미터 제어 (REST API)
+- 🎮 **Robot Control Server**: 로봇 전체 제어 REST API (바퀴, 팔, 그리퍼)
 
 ---
 
@@ -75,6 +77,7 @@ ros2 launch fruit manipulation_gazebo.launch.py
 - 천장 카메라 뷰어 창이 표시됩니다
 - 10초 후 YOLO 객체 탐지가 시작됩니다
 - 10초 후 Parameter Web Server가 시작됩니다 (포트 5002)
+- 10초 후 Robot Control Server가 시작됩니다 (포트 5003)
 
 ---
 
@@ -131,6 +134,21 @@ GAZEBO_MODEL_PATH 설정
   - `POST /api/yolo/toggle`: YOLO ON/OFF
   - `GET /api/status`: 서버 상태 확인
 
+#### 7. **Robot Control Server** (10초 지연)
+- 노드: `robot_control_server`
+- 포트: `5003`
+- 기능:
+  - REST API를 통한 로봇 전체 제어 (rosbridge 대체)
+  - Windows 환경에서도 사용 가능
+  - 웹/모바일 앱에서 로봇 원격 제어
+  - CORS 활성화 (크로스 도메인 접근 허용)
+- API 카테고리:
+  - **로봇 이동**: 전진, 후진, 회전, 정지
+  - **로봇 팔**: 관절 각도 제어, 홈/준비 포지션
+  - **그리퍼**: 열기/닫기
+  - **상태 조회**: 관절 상태, Odometry
+  - **과일 스폰**: 개별/전체 과일 생성
+
 ---
 
 ## 실행 타임라인
@@ -152,8 +170,10 @@ t=10s   ━━━━━━━━━━━━━━━━━━━━━━━━
         │   └─ 카메라 영상 GUI 표시
         ├─ Camera Streamer ZeroMQ 실행
         │   └─ YOLO 객체 탐지 시작 🎯
-        └─ Parameter Server 실행
-            └─ REST API 서버 시작 (포트 5002) 🌐
+        ├─ Parameter Server 실행
+        │   └─ REST API 서버 시작 (포트 5002) 🌐
+        └─ Robot Control Server 실행
+            └─ 로봇 제어 REST API 서버 시작 (포트 5003) 🎮
 ```
 
 ---
@@ -336,6 +356,278 @@ async function setQuality(quality) {
 
 ---
 
+## 로봇 제어 API 사용 예제
+
+Robot Control Server를 사용하여 웹이나 다른 앱에서 로봇을 제어할 수 있습니다.
+
+### 1. **로봇 이동 제어**
+
+#### 전진
+```bash
+curl -X POST http://localhost:5003/api/robot/forward \
+  -H "Content-Type: application/json" \
+  -d '{"duration": 2.0}'
+```
+
+#### 후진
+```bash
+curl -X POST http://localhost:5003/api/robot/backward \
+  -H "Content-Type: application/json" \
+  -d '{"duration": 2.0}'
+```
+
+#### 좌회전
+```bash
+curl -X POST http://localhost:5003/api/robot/turn_left \
+  -H "Content-Type: application/json" \
+  -d '{"duration": 1.5}'
+```
+
+#### 정지
+```bash
+curl -X POST http://localhost:5003/api/robot/stop
+```
+
+#### 속도 제어
+```bash
+curl -X POST http://localhost:5003/api/robot/move \
+  -H "Content-Type: application/json" \
+  -d '{
+    "linear_x": 0.1,
+    "angular_z": 0.3
+  }'
+```
+
+### 2. **로봇 팔 제어**
+
+#### 홈 포지션
+```bash
+curl -X POST http://localhost:5003/api/arm/home
+```
+
+#### 준비 포지션
+```bash
+curl -X POST http://localhost:5003/api/arm/ready
+```
+
+#### 관절 각도 제어
+```bash
+curl -X POST http://localhost:5003/api/arm/move \
+  -H "Content-Type: application/json" \
+  -d '{
+    "joint1": 0.0,
+    "joint2": -1.0,
+    "joint3": 0.3,
+    "joint4": 0.7,
+    "duration": 3.0
+  }'
+```
+
+#### 단일 관절 제어
+```bash
+# 첫 번째 관절 (joint_index=0)
+curl -X POST http://localhost:5003/api/arm/joint/0 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "angle": 1.57,
+    "duration": 2.0
+  }'
+```
+
+#### 현재 관절 각도 조회
+```bash
+curl http://localhost:5003/api/arm/current
+```
+
+**응답:**
+```json
+{
+  "success": true,
+  "joint1": 0.0,
+  "joint2": -1.0,
+  "joint3": 0.3,
+  "joint4": 0.7
+}
+```
+
+### 3. **그리퍼 제어**
+
+#### 그리퍼 열기
+```bash
+curl -X POST http://localhost:5003/api/gripper/open
+```
+
+#### 그리퍼 닫기
+```bash
+curl -X POST http://localhost:5003/api/gripper/close
+```
+
+### 4. **로봇 상태 조회**
+
+```bash
+curl http://localhost:5003/api/robot/status
+```
+
+**응답:**
+```json
+{
+  "success": true,
+  "joint_state": {
+    "names": ["wheel_left_joint", "wheel_right_joint", "joint1", "joint2", "joint3", "joint4", "gripper_left_joint", "gripper_right_joint"],
+    "positions": [0.0, 0.0, 0.0, -1.0, 0.3, 0.7, 0.019, -0.019],
+    "velocities": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  },
+  "odom": {
+    "position": {"x": -2.0, "y": -0.5, "z": 0.01},
+    "orientation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0},
+    "linear_velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
+    "angular_velocity": {"x": 0.0, "y": 0.0, "z": 0.0}
+  }
+}
+```
+
+### 5. **과일 스폰**
+
+#### 단일 과일 생성
+```bash
+curl -X POST http://localhost:5003/api/fruit/spawn \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fruit_type": "banana",
+    "x": -1.5,
+    "y": 0.0,
+    "z": 0.5
+  }'
+```
+
+#### 모든 과일 생성
+```bash
+curl -X POST http://localhost:5003/api/fruit/spawn/all
+```
+
+### JavaScript 예제 (웹 앱용)
+
+```javascript
+const ROBOT_API = 'http://192.168.1.100:5003';
+
+// 로봇 전진
+async function moveForward(duration = 2.0) {
+    const response = await fetch(`${ROBOT_API}/api/robot/forward`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ duration })
+    });
+    const data = await response.json();
+    console.log('Moving forward:', data);
+}
+
+// 로봇 팔 홈 포지션
+async function armToHome() {
+    const response = await fetch(`${ROBOT_API}/api/arm/home`, {
+        method: 'POST'
+    });
+    const data = await response.json();
+    console.log('Arm to home:', data);
+}
+
+// 그리퍼 제어
+async function controlGripper(open = true) {
+    const endpoint = open ? 'open' : 'close';
+    const response = await fetch(`${ROBOT_API}/api/gripper/${endpoint}`, {
+        method: 'POST'
+    });
+    const data = await response.json();
+    console.log(`Gripper ${endpoint}:`, data);
+}
+
+// 로봇 상태 조회
+async function getRobotStatus() {
+    const response = await fetch(`${ROBOT_API}/api/robot/status`);
+    const data = await response.json();
+    console.log('Robot status:', data);
+    return data;
+}
+
+// 관절 각도 제어
+async function moveArm(joint1, joint2, joint3, joint4, duration = 3.0) {
+    const response = await fetch(`${ROBOT_API}/api/arm/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ joint1, joint2, joint3, joint4, duration })
+    });
+    const data = await response.json();
+    console.log('Arm moved:', data);
+}
+```
+
+### Python 예제 (외부 스크립트용)
+
+```python
+import requests
+import json
+
+ROBOT_API = 'http://localhost:5003'
+
+def move_forward(duration=2.0):
+    """로봇 전진"""
+    response = requests.post(
+        f'{ROBOT_API}/api/robot/forward',
+        json={'duration': duration}
+    )
+    return response.json()
+
+def arm_to_home():
+    """팔 홈 포지션"""
+    response = requests.post(f'{ROBOT_API}/api/arm/home')
+    return response.json()
+
+def open_gripper():
+    """그리퍼 열기"""
+    response = requests.post(f'{ROBOT_API}/api/gripper/open')
+    return response.json()
+
+def close_gripper():
+    """그리퍼 닫기"""
+    response = requests.post(f'{ROBOT_API}/api/gripper/close')
+    return response.json()
+
+def get_robot_status():
+    """로봇 상태 조회"""
+    response = requests.get(f'{ROBOT_API}/api/robot/status')
+    return response.json()
+
+def move_arm(joint1, joint2, joint3, joint4, duration=3.0):
+    """팔 관절 제어"""
+    response = requests.post(
+        f'{ROBOT_API}/api/arm/move',
+        json={
+            'joint1': joint1,
+            'joint2': joint2,
+            'joint3': joint3,
+            'joint4': joint4,
+            'duration': duration
+        }
+    )
+    return response.json()
+
+# 사용 예제
+if __name__ == '__main__':
+    # 로봇 상태 확인
+    status = get_robot_status()
+    print('Current status:', status)
+    
+    # 팔을 홈으로
+    arm_to_home()
+    
+    # 전진
+    move_forward(2.0)
+    
+    # 그리퍼 열기
+    open_gripper()
+```
+
+---
+
 ## 트러블슈팅
 
 ### 1. 과일이 보이지 않음
@@ -423,6 +715,52 @@ curl http://localhost:5002/api/status
 - `streaming_fps`, `zmq_address` 등은 노드 재시작 필요
 - 로그에서 "파라미터 변경" 메시지 확인
 
+### 8. Robot Control Server 연결 안 됨
+
+**원인**: 서버가 실행되지 않았거나 포트가 차단됨
+
+**해결**:
+```bash
+# Robot Control Server 실행 확인
+ros2 node list | grep robot_control_server
+
+# 포트 확인
+netstat -an | grep 5003
+
+# 방화벽 포트 열기 (Linux)
+sudo ufw allow 5003/tcp
+
+# 서버 상태 확인
+curl http://localhost:5003/api/robot/status
+```
+
+### 9. 로봇이 API 명령에 반응하지 않음
+
+**원인**: 액션 서버가 준비되지 않음
+
+**해결**:
+```bash
+# 액션 서버 확인
+ros2 action list
+
+# 필요한 액션 서버:
+# - /arm_controller/follow_joint_trajectory
+# - /gripper_controller/gripper_cmd
+
+# 로봇 컨트롤러 로그 확인
+ros2 node info /robot_control_server
+```
+
+### 10. API 호출 시 CORS 에러 (웹 앱)
+
+**원인**: 브라우저의 CORS 정책
+
+**해결**:
+- Robot Control Server는 CORS가 이미 활성화되어 있음
+- 브라우저 콘솔에서 에러 메시지 확인
+- 올바른 서버 IP 주소 사용 확인
+- HTTPS 대신 HTTP 사용
+
 ---
 
 ## 노드 구조
@@ -448,12 +786,19 @@ manipulation_gazebo.launch.py
 │  ├─ YOLO Detection (동적 ON/OFF 가능)
 │  └─ Publish: ZeroMQ (tcp://*:5555)
 │
-└─ parameter_server (10s delay)
-   ├─ REST API Server (포트 5002)
-   ├─ Endpoint: /api/parameter/set
-   ├─ Endpoint: /api/parameter/get
-   ├─ Endpoint: /api/yolo/toggle
-   └─ Endpoint: /api/status
+├─ parameter_server (10s delay)
+│  ├─ REST API Server (포트 5002)
+│  ├─ Endpoint: /api/parameter/set
+│  ├─ Endpoint: /api/parameter/get
+│  ├─ Endpoint: /api/yolo/toggle
+│  └─ Endpoint: /api/status
+│
+└─ robot_control_server (10s delay)
+   ├─ REST API Server (포트 5003)
+   ├─ Robot Movement: /api/robot/*
+   ├─ Arm Control: /api/arm/*
+   ├─ Gripper Control: /api/gripper/*
+   └─ Fruit Spawner: /api/fruit/*
 ```
 
 ---
@@ -478,6 +823,8 @@ manipulation_gazebo.launch.py
 
 ### REST API 엔드포인트
 
+#### Parameter Server (포트 5002)
+
 | 엔드포인트 | 메서드 | 설명 |
 |------------|--------|------|
 | `/api/status` | GET | 서버 상태 확인 |
@@ -486,6 +833,30 @@ manipulation_gazebo.launch.py
 | `/api/parameter/get` | GET | 파라미터 조회 |
 
 **베이스 URL**: `http://localhost:5002` (또는 서버 IP)
+
+#### Robot Control Server (포트 5003)
+
+| 엔드포인트 | 메서드 | 설명 |
+|------------|--------|------|
+| `/api/robot/move` | POST | 로봇 이동 (속도 제어) |
+| `/api/robot/stop` | POST | 로봇 정지 |
+| `/api/robot/status` | GET | 로봇 상태 조회 |
+| `/api/robot/forward` | POST | 전진 |
+| `/api/robot/backward` | POST | 후진 |
+| `/api/robot/turn_left` | POST | 좌회전 |
+| `/api/robot/turn_right` | POST | 우회전 |
+| `/api/robot/home` | POST | 로봇 전체 홈 포지션 |
+| `/api/arm/move` | POST | 로봇 팔 이동 (관절 각도) |
+| `/api/arm/home` | POST | 팔 홈 포지션 |
+| `/api/arm/ready` | POST | 팔 준비 포지션 |
+| `/api/arm/current` | GET | 현재 관절 각도 조회 |
+| `/api/arm/joint/<index>` | POST | 단일 관절 제어 |
+| `/api/gripper/open` | POST | 그리퍼 열기 |
+| `/api/gripper/close` | POST | 그리퍼 닫기 |
+| `/api/fruit/spawn` | POST | 과일 생성 (개별) |
+| `/api/fruit/spawn/all` | POST | 모든 과일 생성 |
+
+**베이스 URL**: `http://localhost:5003` (또는 서버 IP)
 
 ---
 
@@ -505,7 +876,8 @@ fruit/
 │   │   ├── ceiling_camera_viewer.py    # 카메라 뷰어
 │   │   └── camera_streamer_zeromq.py   # ZeroMQ 스트리머 + YOLO
 │   ├── api/
-│   │   └── parameter_server.py         # REST API 서버 (파라미터 제어)
+│   │   ├── parameter_server.py         # REST API 서버 (파라미터 제어)
+│   │   └── robot_control_server.py     # REST API 서버 (로봇 제어)
 │   └── ...
 ├── models/
 │   └── fruits/
@@ -523,7 +895,8 @@ fruit/
 - Launch: `src/fruit/launch/manipulation_gazebo.launch.py`
 - Node: `src/fruit/fruit/spawner/fruit_spawner.py`
 - Node: `src/fruit/fruit/camera/camera_streamer_zeromq.py`
-- Node: `src/fruit/fruit/api/parameter_server.py` ⭐ 추가
+- Node: `src/fruit/fruit/api/parameter_server.py`
+- Node: `src/fruit/fruit/api/robot_control_server.py` ⭐ 추가
 - Config: `src/fruit/config/yolo_config.yaml`
 
 ---

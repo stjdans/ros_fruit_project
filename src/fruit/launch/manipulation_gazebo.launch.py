@@ -179,6 +179,20 @@ def generate_launch_description():
         actions=[parameter_server_node]
     )
     
+    # Robot control server node (Main robot control API)
+    robot_control_server_node = Node(
+        package='fruit',
+        executable='robot_control_server',
+        name='robot_control_server',
+        output='screen'
+    )
+    
+    # Delay robot control server execution by 10 seconds
+    delayed_robot_control_server = TimerAction(
+        period=10.0,
+        actions=[robot_control_server_node]
+    )
+    
     return LaunchDescription([
         # Set environment variable first
         set_gazebo_model_path,
@@ -201,5 +215,6 @@ def generate_launch_description():
         delayed_ceiling_camera,
         delayed_camera_streamer,
         delayed_parameter_server,
+        delayed_robot_control_server,
     ])
 

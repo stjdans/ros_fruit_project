@@ -85,6 +85,7 @@ setup(
             
             # API Server
             'parameter_server = fruit.api.parameter_server:main',
+            'robot_control_server = fruit.api.robot_control_server:main',
         ],
     },
 )
