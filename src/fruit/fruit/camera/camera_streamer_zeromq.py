@@ -9,6 +9,8 @@ ZeroMQ 기반 카메라 스트리머
 
 import rclpy
 from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rcl_interfaces.msg import SetParametersResult
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
@@ -36,6 +38,7 @@ class CameraStreamerZeroMQ(Node):
         self.declare_parameter('image_topic', '/ceiling/ceiling_camera/image_raw')
         self.declare_parameter('high_water_mark', 10)  # 메시지 큐 크기
         self.declare_parameter('send_timeout', 1000)  # ms
+        self.declare_parameter('use_yolo', True)  # YOLO 사용 여부
         
         # 파라미터 가져오기
         self.zmq_address = self.get_parameter('zmq_address').value
@@ -45,6 +48,10 @@ class CameraStreamerZeroMQ(Node):
         self.image_topic = self.get_parameter('image_topic').value
         self.high_water_mark = self.get_parameter('high_water_mark').value
         self.send_timeout = self.get_parameter('send_timeout').value
+        self.use_yolo = self.get_parameter('use_yolo').value
+        
+        # 파라미터 변경 콜백 등록
+        self.add_on_set_parameters_callback(self.parameter_callback)
         
         # CV Bridge
         self.bridge = CvBridge()
@@ -113,25 +120,28 @@ class CameraStreamerZeroMQ(Node):
         self.get_logger().info(f'전송 FPS: {self.fps}')
         self.get_logger().info(f'이미지 품질: {self.quality}%')
         self.get_logger().info(f'HWM: {self.high_water_mark}')
+        self.get_logger().info(f'YOLO 사용: {self.use_yolo}')
         self.get_logger().info('='*60)
         
         # YOLO 모델 초기화
         self.yolo_model = None
         self.init_yolo_model()
-    
+
     def image_callback(self, msg):
         """카메라 이미지 콜백"""
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
-            # YOLO 탐지 실행
-            cv_image, detections = self.detect_fruits(cv_image)
             
-            # 탐지 결과를 이미지에 그리기
-            cv_image = self.draw_detections(cv_image, detections)
-            
-            # # 이미지 정보를 화면에 표시
-            # cv_image = self.display_image_with_info(cv_image, msg, detections)
-            
+            if self.use_yolo :
+                # YOLO 탐지 실행
+                cv_image, detections = self.detect_fruits(cv_image)
+                
+                # 탐지 결과를 이미지에 그리기
+                cv_image = self.draw_detections(cv_image, detections)
+                
+                # # 이미지 정보를 화면에 표시
+                cv_image = self.display_image_with_info(cv_image, msg, detections)
+                
             with self.image_lock:
                 self.latest_image = cv_image.copy()
         except Exception as e:
@@ -287,7 +297,7 @@ class CameraStreamerZeroMQ(Node):
             confidence = detection['confidence']
             class_name = detection['class_name']
             
-            # 0.3 이하 탐지 결과는 패스
+            # 0.4 미만 탐지 결과는 패스
             if confidence < 0.4:
                 continue
             
@@ -318,34 +328,38 @@ class CameraStreamerZeroMQ(Node):
         thickness = 2
         
         # 배경 사각형 (텍스트 가독성 향상)
-        info_text = [
-            f'Size: {msg.width}x{msg.height}',
-            f'Encoding: {msg.encoding}',
-            f'Frame: {msg.header.frame_id}',
-            f'Seq: {msg.header.stamp.sec}.{msg.header.stamp.nanosec}'
-        ]
+        # info_text = [
+        #     f'Size: {msg.width}x{msg.height}',
+        #     f'Encoding: {msg.encoding}',
+        #     f'Frame: {msg.header.frame_id}',
+        #     f'Seq: {msg.header.stamp.sec}.{msg.header.stamp.nanosec}'
+        # ]
         
         # 탐지 정보 추가
-        if detections:
-            info_text.append(f'Detections: {len(detections)}')
-            for i, detection in enumerate(detections[:3]):  # 최대 3개만 표시
-                info_text.append(f'  {detection["class_name"]}: {detection["confidence"]:.2f}')
+        # if detections:
+        #     info_text.append(f'Detections: {len(detections)}')
+        #     for i, detection in enumerate(detections[:3]):  # 최대 3개만 표시
+        #         info_text.append(f'  {detection["class_name"]}: {detection["confidence"]:.2f}')
         
         y_offset = 30
-        for i, text in enumerate(info_text):
-            # 텍스트 크기 계산
-            (text_width, text_height), _ = cv2.getTextSize(text, font, font_scale, thickness)
-            
-            # 배경 사각형 그리기
-            cv2.rectangle(display_image, 
-                         (5, y_offset - text_height - 5), 
-                         (15 + text_width, y_offset + 5),
-                         (0, 0, 0), -1)
-            
-            # 텍스트 그리기
-            cv2.putText(display_image, text, (10, y_offset), 
+        # 텍스트 그리기
+        cv2.putText(display_image, "YOLO detecting", (10, y_offset), 
                        font, font_scale, font_color, thickness)
-            y_offset += 30
+        
+        # for i, text in enumerate(info_text):
+        #     # 텍스트 크기 계산
+        #     (text_width, text_height), _ = cv2.getTextSize(text, font, font_scale, thickness)
+            
+        #     # 배경 사각형 그리기
+        #     cv2.rectangle(display_image, 
+        #                  (5, y_offset - text_height - 5), 
+        #                  (15 + text_width, y_offset + 5),
+        #                  (0, 0, 0), -1)
+            
+        #     # 텍스트 그리기
+        #     cv2.putText(display_image, text, (10, y_offset), 
+        #                font, font_scale, font_color, thickness)
+        #     y_offset += 30
         
         # # 중앙에 십자선 그리기
         # height, width = display_image.shape[:2]
@@ -364,6 +378,35 @@ class CameraStreamerZeroMQ(Node):
         # # 이미지 표시
         # cv2.imshow(self.window_name, display_image)
         return display_image
+    
+    def parameter_callback(self, params):
+        """파라미터 변경 콜백"""
+        result = SetParametersResult(successful=True)
+        
+        for param in params:
+            if param.name == 'use_yolo':
+                old_value = self.use_yolo
+                self.use_yolo = param.value
+                self.get_logger().info(
+                    f'✓ YOLO 사용 변경: {old_value} → {self.use_yolo}'
+                )
+                
+            elif param.name == 'image_quality':
+                old_value = self.quality
+                self.quality = param.value
+                self.get_logger().info(
+                    f'✓ 이미지 품질 변경: {old_value}% → {self.quality}%'
+                )
+                
+            elif param.name == 'streaming_fps':
+                old_value = self.fps
+                self.fps = param.value
+                # 타이머 재생성 필요 (간단히 값만 변경)
+                self.get_logger().info(
+                    f'✓ FPS 변경: {old_value} → {self.fps} (재시작 필요)'
+                )
+        
+        return result
     
     def destroy_node(self):
         """노드 종료"""
